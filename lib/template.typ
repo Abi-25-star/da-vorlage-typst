@@ -4,13 +4,13 @@
 #import "assertions.typ": *
 
 #let diplomarbeit(
-  titel: none, 
+  titel: none,
   abteilung: none,
   unterschrifts-datum: none,
   schuljahr: none,
   autoren: none,
   kurzfassung: none,
-  abstract: none, 
+  abstract: none,
   vorwort: none,
   danksagung: none,
   anhang: none,
@@ -35,22 +35,28 @@ if anhang != none {
 
 // check autoren
 assertType(autoren, "array", message: "Der Parameter `autoren` hat einen falschen Typen")
-for t in autoren {
+for i, t in enumerate(autoren) {
   assertType(t, "dictionary", message: "Autor hat falschen Typen")
   assertDictKeys(t, ("vorname", "nachname", "klasse", "betreuer"), message: "Autor ist ungültig")
   assertDictKeys(t.betreuer, ("name", "geschlecht"), message: "Betreuer eines Autors ist ungültig")
-  assertEnum(t.betreuer.geschlecht, ("male","female"), message: "`betreuer_geschlecht` muss korrekten Wert enthalten")
+  assertEnum(t.betreuer.geschlecht, ("male", "female"), message: "`betreuer_geschlecht` muss korrekten Wert enthalten")
+
+  // Remove "betreuer" for all but the last author
+  if i != autoren.length - 1 {
+    t.betreuer = none
+  }
 }
-  
+
+
 let title = titel
-  
+
 // ========== global definitions ============
 
 set page("a4")
 
 set page(margin: (
-  inside: settings.PAGE_MARGIN_INSIDE, 
-  outside: settings.PAGE_MARGIN_OUTSIDE, 
+  inside: settings.PAGE_MARGIN_INSIDE,
+  outside: settings.PAGE_MARGIN_OUTSIDE,
   bottom: 2cm,
 ))
 
@@ -58,8 +64,8 @@ set page(margin: (
 
 set text(
   11pt,
-  font: settings.FONT_PRIMARY, 
-  hyphenate: false, 
+  font: settings.FONT_PRIMARY,
+  hyphenate: false,
   lang: "de"
 )
 set par(leading: 0.7em, justify: true)
@@ -88,7 +94,7 @@ show heading: it => {
 }
 // support `Ausgearbeitet von ...` substrings
 show heading: it => {
-  if it.level > 2 { return it }  
+  if it.level > 2 { return it }
   let author = elems.elaborated_by
   it
   v(4mm, weak: true)
@@ -109,7 +115,7 @@ show heading: it => {
   } else {
     pad(top: 0mm, bottom: 4mm, it)
   }
-} 
+}
 
 // -------- figures --------
 
@@ -139,8 +145,8 @@ show outline.entry: it => {
   let t = context counter(heading).display()
   let e = it.element
   if (
-    e.has("supplement") 
-    and e.supplement == [Abschnitt] 
+    e.has("supplement")
+    and e.supplement == [Abschnitt]
     and e.numbering != none
   ) {
     context {
@@ -151,7 +157,7 @@ show outline.entry: it => {
     it.element.body
     box(width: 1fr, it.fill)
     it.page
-    
+
   } else {
     it
   }
@@ -177,13 +183,13 @@ show raw.where(block: false): box.with(
 )
 
 set list(
-  indent: 6mm, 
+  indent: 6mm,
   marker: ([$circle.filled.small$], [$circle.stroked.small$], [$square.filled.tiny$]),
   body-indent: 3mm,
-  
+
 )
 set enum(
-  indent: 6mm, 
+  indent: 6mm,
   numbering: "1.a.i.",
   body-indent: 3mm,
 )
@@ -224,7 +230,7 @@ set page(
 counter(page).update(1)
 
 {
-  
+
   //Eidesstattliche Erklärung
   import "pages/eidesstattliche.typ": eidesstattliche
   let persons = autoren.map(e => [#e.vorname #e.nachname])
@@ -235,12 +241,12 @@ counter(page).update(1)
   import "pages/dokumentation.typ": dokumentation
   dokumentation()
   pagebreak()
-  
+
   //Kurzfassung
-  [= Kurzfassung <Kurzfassung>] 
+  [= Kurzfassung <Kurzfassung>]
   kurzfassung
   pagebreak()
-  
+
   //Abstract
   [= Abstract <Abstract>]
   abstract
@@ -250,12 +256,12 @@ counter(page).update(1)
   [= Vorwort <Vorwort>]
   vorwort
   pagebreak()
-  
+
   //Inhaltsverzeichnis
   outline(
     title: "Inhaltsverzeichnis",
     indent: 2em
-  ) 
+  )
 
 }
 // -------------------------------
@@ -276,12 +282,12 @@ counter(heading).update(0)
 // start of actual DA writing
 [#metadata((type: "start-of-body")) <startOfBody>]
 
-{  
+{
   // add pagebreak before each level 1 heading (except for first heading after outline)
   show heading.where(level: 1): it => {
     if counter(heading).at(it.location()).first() != 1 {
       pagebreak()
-    }  
+    }
     it
   }
 
@@ -332,7 +338,7 @@ if (anhang != none) {
 
 }
 
-// This is used by the 
+// This is used by the
 #let autor(author) = {
   metadata((type: "author", value: author))
 }
